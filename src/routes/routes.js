@@ -10,7 +10,7 @@ const productInputMiddleware = require('../middleware/productInputMiddleware.js'
 
 const router = new Router();
 
-const { getProducts: getAllProducts } = require('../database/productRepository');
+const { getAllProducts: getAllProducts } = require('../database/productRepository');
 
 //Routes products
 router.get('/api/products', productHandler.getProducts);

@@ -1,8 +1,23 @@
 const fs = require('fs');
 let productsData = require('./products.json');
+const filePath = './src/database/products.json'
 
-function getProducts() {
+function getAllProducts() {
     return productsData;
+}
+function getProducts(limit, sort) {
+    let result = productsData;
+    if (sort === 'asc') {
+        result = [...result].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    } else if (sort === 'desc') {
+        result = [...result].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
+    if (limit) {
+        result = result.slice(0, parseInt(limit));
+    }
+
+    return result;
 }
 
 /**
@@ -15,9 +30,8 @@ function addProduct(data) {
         createdAt: new Date().toISOString(),
     }
 
-    productsData.push(newProduct);
-
-    fs.writeFileSync('./src/database/products.json', JSON.stringify(productsData, null, 2));
+    const products = [...productsData, newProduct];
+    fs.writeFileSync(filePath, JSON.stringify(products, null, 2));
 
     return newProduct;
 }
@@ -27,19 +41,27 @@ function addProduct(data) {
  * @param newData
  */
 function updateProduct(id, newData) {
-    const index = productsData.findIndex(product => product.id === parseInt(id));
-    productsData[index] = { ...productsData[index], ...newData };
+    const readProducts = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    const updateProducts = readProducts.map((product) => {
+        if (product.id === parseInt(id)) {
+            return {
+                ...product,
+                newData
+            }
+        }
+        return product;
+    })
 
-    fs.writeFileSync('./src/database/products.json', JSON.stringify(productsData, null, 2));
-    return productsData[index];
+    fs.writeFileSync('./src/database/products.json', JSON.stringify(updateProducts, null, 2));
 }
 
 /**
  * @param id
  */
 function deleteProduct(id) {
-    productsData = productsData.filter(product => product.id !== parseInt(id));
-    fs.writeFileSync('./src/database/products.json', JSON.stringify(productsData, null, 2));
+    const readProducts = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    const products = readProducts.filter(product => product.id !== parseInt(id));
+    return fs.writeFileSync(filePath, JSON.stringify(products, null, 2));
 }
 
 /**
@@ -68,6 +90,7 @@ function getProductFields(product, fields) {
 
 module.exports = {
     getProducts,
+    getAllProducts,
     addProduct,
     updateProduct,
     deleteProduct,

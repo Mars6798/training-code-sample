@@ -7,17 +7,8 @@ const repo = require('../../database/productRepository');
  */
 async function getProducts(ctx) {
     try {
-        let products = repo.getProducts();
         const { limit, sort } = ctx.query;
-        if (limit) {
-            products = products.slice(0, parseInt(limit));
-        }
-
-        if (sort === 'asc') {
-            products = [...products].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-        } else if (sort === 'desc') {
-            products = [...products].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        }
+        const products = repo.getProducts(limit, sort);
 
         ctx.status = 200;
         ctx.body = {
@@ -66,12 +57,11 @@ async function updateProduct(ctx) {
     try {
         const { id } = ctx.params;
         const newData = ctx.request.body;
-        const updateProduct = repo.updateProduct(id, newData);
-
+        repo.updateProduct(id, newData);
         ctx.status = 200;
         return ctx.body = {
             success: true,
-            data: updateProduct
+            message: "Product updated successfully",
         };
     } catch (e) {
         ctx.status = 404;
